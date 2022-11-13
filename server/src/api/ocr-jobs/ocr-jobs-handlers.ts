@@ -1,14 +1,10 @@
-import axios from "axios";
 import crypto from "crypto";
 import {RequestHandler} from "express";
-import FormData from "form-data";
 import {AppDataSource} from "../../database/data-source";
 import {OcrJob} from "../../database/entities/ocr-job";
-import {faApiAccessToken, faApiUrl, faApiVersion} from "../../fa-api";
+import {craeteOcrJob, findOcrJob, getOcrJob, listOcrJob} from "./ocr-jobs-services";
 
-function jobRepo() {return AppDataSource.getRepository(OcrJob);}
-
-export const createOcrJob: RequestHandler = async (req, res) => {
+export const createOcrJobHandler: RequestHandler = async (req, res) => {
     if (!req.file) {
         res.status(400).json({message: `File not found.`});
         return;
@@ -27,49 +23,25 @@ export const createOcrJob: RequestHandler = async (req, res) => {
 
     const sha256 = crypto.createHash("sha256").update(buffer).digest("base64");
 
-    const old = await jobRepo().findOneBy({
-        filename: originalname,
-        sha256,
-        faApiVersion: faApiVersion()
-    });
+    const oldJob = await findOcrJob(originalname, sha256);
 
-    if (old) {
-        res.json({job: old});
+    if (!!oldJob) {
+        res.json({job: oldJob});
         return;
     }
 
-    const formData = new FormData();
-    formData.append("file", buffer, originalname);
-    
-    const convertRes = await axios.post(faApiUrl("/convert_to_jpg/async"), formData, {
-        headers: {
-            ...formData.getHeaders(),
-            Authorization: "Bearer " + faApiAccessToken()
-        },
-    });
-
-    if (convertRes.data.result !== "SUCCESS") {
-        res.status(500).json({message: `Error on converting pdf.`, data: convertRes.data});
-        return;
+    const createResult = await craeteOcrJob(originalname, buffer, sha256);
+    if (createResult.success) {
+        res.json({job: createResult.data});
+    } else {
+        const {error} = createResult;
+        res.status(error.status).json({message: error.message, data: error.data});
     }
-
-    const ocrJob = new OcrJob();
-    ocrJob.filename = originalname;
-    ocrJob.sha256 = sha256;
-    ocrJob.faApiVersion = faApiVersion();
-    ocrJob.faConvertJobId = convertRes.data.lid;
-    const inserted = await jobRepo().insert(ocrJob);
-
-    res.json({job: inserted.generatedMaps[0]});
 };
 
-export const getOcrJob: RequestHandler = async (req, res) => {
+export const getOcrJobHandler: RequestHandler = async (req, res) => {
     const id = req.params.jobId;
-    const job = await jobRepo().findOne({
-        where: {
-            id: Number(id),
-        }
-    });
+    const job = await getOcrJob(Number(id));
 
     if (!job) {
         res.status(404).json({message: `Job ${id} not found.`});
@@ -78,7 +50,6 @@ export const getOcrJob: RequestHandler = async (req, res) => {
     }
 };
 
-export const listOcrJobs: RequestHandler = async (req, res) => {
-    const jobs = await jobRepo().find();
-    res.json({ocrJobs: jobs});
+export const listOcrJobsHandler: RequestHandler = async (req, res) => {
+    res.json({ocrJobs: await listOcrJob()});
 };

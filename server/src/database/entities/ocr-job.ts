@@ -50,6 +50,9 @@ export class OcrJobResult {
     @PrimaryColumn()
     lid: string;
 
+    @Column()
+    imageIdx: number;
+
     @Column({default: false})
     done: boolean;
 

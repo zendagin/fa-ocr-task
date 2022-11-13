@@ -54,8 +54,8 @@ export const getOcrJobHandler: RequestHandler = async (req, res) => {
             break;
 
         case OcrJobStatus.OCR:
-            // TODO
-            res.json({ocrJob: job});
+            await checkOcrDone();
+            res.json({ocrJob: await getOcrJob(job.id)});
             break;
 
         case OcrJobStatus.DONE:

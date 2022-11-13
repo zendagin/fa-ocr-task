@@ -1,5 +1,6 @@
 import express from "express";
 import routes from "./api/routes";
+import {initDatabase} from "./database/init";
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -9,6 +10,8 @@ app.get("/", (req, res) => {
 
 app.use(routes);
 
-app.listen(port, function () {
-    console.log(`Express listning to port ${port}`);
+initDatabase().then(() => {
+    app.listen(port, function () {
+        console.log(`Express listning to port ${port}`);
+    });
 });

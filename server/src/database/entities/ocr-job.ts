@@ -1,4 +1,4 @@
-import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany} from "typeorm";
+import {Entity, PrimaryColumn, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn} from "typeorm";
 
 export enum OcrJobStatus {
     CONVERT = "convert",
@@ -46,8 +46,11 @@ export class OcrJob {
 
 @Entity()
 export class OcrJobResult {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryColumn()
+    lid: string;
+
+    @Column({default: false})
+    done: boolean;
 
     @Column("simple-json")
     result: any;

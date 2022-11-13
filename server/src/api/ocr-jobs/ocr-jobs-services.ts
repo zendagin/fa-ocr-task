@@ -34,7 +34,7 @@ export async function craeteOcrJob(filename: string, buffer: Buffer, sha256: str
     ocrJob.filename = filename;
     ocrJob.sha256 = sha256;
     ocrJob.faApiVersion = faApiVersion();
-    ocrJob.faConvertJobId = convertRes.data.lid;
+    ocrJob.faConvertJobId = convertRes.data.data.lid;
     const inserted = await jobRepo().insert(ocrJob);
     return {
         success: true,

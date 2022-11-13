@@ -176,3 +176,35 @@ export async function checkOcrDone() {
     });
     if (ps.length) await Promise.all(ps);
 }
+
+export async function checkSingleOcrDone(id: number) {
+    const pending = await jobResultRepo().find({
+        where: {done: false, ocrJob: {id}}
+    });
+    if (!pending.length) {
+        await setJobDone(id);
+        return true;
+    }
+
+    for (const job of pending) {
+        await checkAndUpdateResult(job);
+    }
+    // await Promise.all(pending.map(checkAndUpdateResult));
+
+    const jobsRemain = pending.filter(jobRes => !jobRes.done);
+    if (!jobsRemain.length) {
+        await setJobDone(id);
+        return true;
+    }
+    return false;
+}
+
+export async function noPendingJobs() {
+    const pending = await jobRepo().find({
+        where: [
+            {status: OcrJobStatus.CONVERT},
+            {status: OcrJobStatus.OCR}
+        ]
+    });
+    return !!pending.length;
+}

@@ -115,7 +115,7 @@ export async function startOcr(job: OcrJob, images: string[]) {
         status: OcrJobStatus.OCR,
         results: ocrRes
     });
-    return await jobRepo().findOne({where: {id: job.id}});
+    return getOcrJob(job.id);
 }
 
 export async function checkConvertAndStartOcr(job: OcrJob) {

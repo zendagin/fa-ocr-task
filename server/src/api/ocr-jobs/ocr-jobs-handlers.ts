@@ -25,13 +25,13 @@ export const createOcrJobHandler: RequestHandler = async (req, res) => {
     const oldJob = await findOcrJob(originalname, sha256);
 
     if (!!oldJob) {
-        res.json({job: oldJob});
+        res.json({ocrJob: oldJob});
         return;
     }
 
     const createResult = await craeteOcrJob(originalname, buffer, sha256);
     if (createResult.success) {
-        res.json({job: createResult.data});
+        res.json({ocrJob: createResult.data});
     } else {
         const {error} = createResult;
         res.status(error.status).json({message: error.message, data: error.data});

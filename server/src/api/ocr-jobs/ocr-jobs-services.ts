@@ -55,7 +55,8 @@ export async function findOcrJob(filename: string, sha256: string) {
 
 export async function getOcrJob(id: number) {
     return await jobRepo().findOne({
-        where: {id}
+        where: {id},
+        relations: {results: true}
     });
 }
 
@@ -122,10 +123,6 @@ export async function checkConvertAndStartOcr(job: OcrJob) {
 
 export async function listJobResults(jobId: number) {
     return jobResultRepo().find({where: {ocrJob: {id: jobId}}});
-}
-
-export async function attachOcrJobResults(job: OcrJob) {
-    job.results = await listJobResults(job.id);
 }
 
 export async function checkConvertingJobsAndStartOcr() {

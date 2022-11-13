@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import {RequestHandler} from "express";
 import {OcrJobStatus} from "../../database/entities/ocr-job";
-import {attachOcrJobResults, checkConvertAndStartOcr, checkConvertingJobsAndStartOcr, checkOcrDone, craeteOcrJob, findOcrJob, getOcrJob, listOcrJob} from "./ocr-jobs-services";
+import {checkConvertAndStartOcr, checkConvertingJobsAndStartOcr, checkOcrDone, craeteOcrJob, findOcrJob, getOcrJob, listOcrJob} from "./ocr-jobs-services";
 
 export const createOcrJobHandler: RequestHandler = async (req, res) => {
     if (!req.file) {
@@ -50,19 +50,16 @@ export const getOcrJobHandler: RequestHandler = async (req, res) => {
     switch (job.status) {
         case OcrJobStatus.CONVERT:
             const checkedJob = await checkConvertAndStartOcr(job);
-            if (checkedJob.pageNum) await attachOcrJobResults(checkedJob);
             res.json({ocrJob: checkedJob});
             break;
 
         case OcrJobStatus.OCR:
             // TODO
-            await attachOcrJobResults(job);
             res.json({ocrJob: job});
             break;
 
         case OcrJobStatus.DONE:
         case OcrJobStatus.ERROR:
-            await attachOcrJobResults(job);
             res.json({ocrJob: job});
             break;
     }

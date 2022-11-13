@@ -58,6 +58,17 @@ async function selectCard(id: number) {
     await fetchOcrJob(id);
   }
 }
+
+onMounted(() => {
+  setInterval(async () => {
+    const pending = ocrJobList.value.filter(job => job.id !== selectedJobId.value && [OcrJobStatus.CONVERT, OcrJobStatus.OCR].includes(job.status));
+    if (pending.length)
+      await fetchOcrJobList();
+    if (selectedJob.value && [OcrJobStatus.CONVERT, OcrJobStatus.OCR].includes(selectedJob.value.status))
+      await fetchOcrJob(selectedJobId.value);
+  }, 5000);
+})
+
 </script>
 
 <style>

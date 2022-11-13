@@ -5,6 +5,7 @@ import {ObjectLiteral} from "typeorm";
 import {AppDataSource} from "../../database/data-source";
 import {OcrJob, OcrJobResult, OcrJobStatus} from "../../database/entities/ocr-job";
 import {faApiAccessToken, faApiUrl, faApiVersion} from "../../fa-api";
+import {startLongPolling} from "./ocr-jobs-cron";
 
 function jobRepo() {return AppDataSource.getRepository(OcrJob);}
 function jobResultRepo() {return AppDataSource.getRepository(OcrJobResult);}
@@ -37,6 +38,7 @@ export async function craeteOcrJob(filename: string, buffer: Buffer, sha256: str
     ocrJob.faApiVersion = faApiVersion();
     ocrJob.faConvertJobId = convertRes.data.data.lid;
     const inserted = await jobRepo().insert(ocrJob);
+    startLongPolling();
     return {
         success: true,
         data: inserted.generatedMaps[0]

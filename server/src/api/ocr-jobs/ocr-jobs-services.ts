@@ -137,6 +137,24 @@ export async function checkConvertingJobsAndStartOcr() {
     }
 }
 
+async function checkAndUpdateResult(jobRes: OcrJobResult) {
+    const receiptRes = await axios.get(faApiUrl(`/receipt/${jobRes.lid}`), {
+        headers: {
+            Authorization: "Bearer " + faApiAccessToken()
+        },
+    });
+
+    if (receiptRes.data.data.status === "processed") {
+        jobRes.result = receiptRes.data.data.items;
+        jobRes.done = true;
+        await jobResultRepo().save(jobRes);
+    }
+}
+
+async function setJobDone(id: number) {
+    await jobRepo().save({id, status: OcrJobStatus.DONE});
+}
+
 export async function checkOcrDone() {
     const pending = await jobResultRepo().find({
         where: {done: false},
@@ -144,22 +162,10 @@ export async function checkOcrDone() {
     });
     if (!pending.length) return;
 
-    const ocrDone = new Set<string>();
-    async function checkAndUpdateResult(jobRes: OcrJobResult) {
-        const receiptRes = await axios.get(faApiUrl(`/receipt/${jobRes.lid}`), {
-            headers: {
-                Authorization: "Bearer " + faApiAccessToken()
-            },
-        });
-
-        if (receiptRes.data.data.status === "processed") {
-            jobRes.result = receiptRes.data.data.items;
-            jobRes.done = true;
-            await jobResultRepo().save(jobRes);
-        }
+    for (const job of pending) {
+        await checkAndUpdateResult(job);
     }
-
-    await Promise.all(pending.map(checkAndUpdateResult));
+    // await Promise.all(pending.map(checkAndUpdateResult));
 
     function jobIds(jobRes: OcrJobResult[]) {
         return new Set(jobRes.map(jr => jr.ocrJob.id));
@@ -167,13 +173,10 @@ export async function checkOcrDone() {
 
     const affectedJobIds = jobIds(pending);
     const jobsRemain = jobIds(pending.filter(jobRes => !jobRes.done));
-    async function markJobDone(jobId: number) {
-        await jobRepo().save({id: jobId, status: OcrJobStatus.DONE});
-    }
 
     const ps: Promise<any>[] = [];
     affectedJobIds.forEach(jobId => {
-        if (!jobsRemain.has(jobId)) ps.push(markJobDone(jobId));
+        if (!jobsRemain.has(jobId)) ps.push(setJobDone(jobId));
     });
     if (ps.length) await Promise.all(ps);
 }

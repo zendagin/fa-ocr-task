@@ -13,7 +13,7 @@ app.get("/", (req, res) => {
     res.status(200).json({success: true});
 });
 
-app.use(routes);
+app.use("/api", routes);
 
 initDatabase().then(() => {
     initOcrJobsCron();
@@ -22,3 +22,5 @@ initDatabase().then(() => {
         console.log(`Express listning to port ${port}`);
     });
 });
+
+process.on('uncaughtException', err => { });

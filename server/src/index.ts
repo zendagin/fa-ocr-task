@@ -1,4 +1,5 @@
 import express from "express";
+import {initOcrJobsCron} from "./api/ocr-jobs/ocr-jobs-cron";
 import routes from "./api/routes";
 import {initDatabase} from "./database/init";
 const app = express();
@@ -11,6 +12,8 @@ app.get("/", (req, res) => {
 app.use(routes);
 
 initDatabase().then(() => {
+    initOcrJobsCron();
+
     app.listen(port, function () {
         console.log(`Express listning to port ${port}`);
     });

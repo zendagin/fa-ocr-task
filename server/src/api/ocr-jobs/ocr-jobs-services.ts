@@ -81,7 +81,6 @@ export async function checkConvertJobStatus(lid: string): Promise<{done: false;}
 }
 
 export async function startOcr(job: OcrJob, images: string[]) {
-    const jobResList: OcrJobResult[] = [];
     async function callFaOcrJob(idx: number, imgBase64: string) {
         const buffer = Buffer.from(imgBase64.replace(/^data:.*;base64,/, ""), "base64");
 
@@ -101,16 +100,18 @@ export async function startOcr(job: OcrJob, images: string[]) {
         jobRes.imageIdx = idx;
         jobRes.ocrJob = job;
         jobRes.result = {};
-        jobResList.push(jobRes);
+        await jobResultRepo().save(jobRes);
     }
 
     const ps = Array.from(images.entries()).map(([i, imgBase64]) => callFaOcrJob(i, imgBase64));
-    await Promise.all(ps);
-    await jobResultRepo().insert(jobResList);
+    for (const p of ps) {await p;};
+    // await Promise.all(ps);
 
-    job.pageNum = images.length;
-    job.status = OcrJobStatus.OCR;
-    return await jobRepo().save(job);
+    return await jobRepo().save({
+        id: job.id,
+        pageNum: images.length,
+        status: OcrJobStatus.OCR
+    });
 }
 
 export async function checkConvertAndStartOcr(job: OcrJob) {

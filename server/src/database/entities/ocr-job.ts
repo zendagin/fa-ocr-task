@@ -56,6 +56,6 @@ export class OcrJobResult {
     @Column("simple-json")
     result: any;
 
-    @ManyToOne(() => OcrJob, (job) => job.results)
+    @ManyToOne(() => OcrJob, (job) => job.results, {cascade: true})
     ocrJob: OcrJob;
 }

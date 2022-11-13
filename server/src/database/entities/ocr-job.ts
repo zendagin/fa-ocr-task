@@ -1,4 +1,5 @@
 import {Entity, PrimaryColumn, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn} from "typeorm";
+import {faApiVersion} from "../../fa-api";
 
 export enum OcrJobStatus {
     CONVERT = "convert",
@@ -28,7 +29,7 @@ export class OcrJob {
     @Column()
     sha256: string;
 
-    @Column({default: "1.5"})
+    @Column({default: faApiVersion()})
     faApiVersion: string;
 
     @Column({default: ""})

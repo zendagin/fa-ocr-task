@@ -59,5 +59,5 @@ export async function getOcrJob(id: number) {
 }
 
 export async function listOcrJob() {
-    return await jobRepo().find();
+    return await jobRepo().find({order: {createdAt: "desc"}});
 }

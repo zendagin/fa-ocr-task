@@ -109,12 +109,13 @@ export async function startOcr(job: OcrJob, images: string[]) {
     for (const p of ps) {await p;};
     // await Promise.all(ps);
 
-    return await jobRepo().save({
+    await jobRepo().save({
         id: job.id,
         pageNum: images.length,
         status: OcrJobStatus.OCR,
         results: ocrRes
     });
+    return await jobRepo().findOne({where: {id: job.id}});
 }
 
 export async function checkConvertAndStartOcr(job: OcrJob) {

@@ -128,3 +128,12 @@ export async function listJobResults(jobId: number) {
 export async function attachOcrJobResults(job: OcrJob) {
     job.results = await listJobResults(job.id);
 }
+
+export async function checkConvertingJobsAndStartOcr() {
+    const convertingJobs = await jobRepo().find({
+        where: {status: OcrJobStatus.CONVERT}
+    });
+    if (convertingJobs.length) {
+        await Promise.all(convertingJobs.map(job => checkConvertAndStartOcr(job)));
+    }
+}

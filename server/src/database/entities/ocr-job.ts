@@ -1,4 +1,4 @@
-import {Entity, PrimaryColumn, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn} from "typeorm";
+import {Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, RelationId} from "typeorm";
 import {faApiVersion} from "../../fa-api";
 
 export enum OcrJobStatus {
@@ -34,9 +34,6 @@ export class OcrJob {
 
     @Column({default: ""})
     faConvertJobId: string;
-
-    @Column({default: ""})
-    faReceiptJobId: string;
 
     @Column({default: 0})
     pageNum: number;
